@@ -1,28 +1,42 @@
-name: Facebook Bot Runner
+name: Facebook Auto-Reply Bot
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'  # প্রতি 5 ঘন্টা পরপর নতুন ইনস্ট্যান্স চালু হবে
+    - cron: '0 */6 * * *'
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6 ঘন্টা ম্যাক্সিমাম
+    timeout-minutes: 10  # Prevent hanging
+    
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
         node-version: '18.x'
-    - run: npm install
-    - name: Create config files
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Create id.js file
       run: |
-        echo "module.exports = { appState: ${{ secrets.FB_COOKIES }} }" > id.js
+        mkdir -p $(dirname ./id.js)
+        echo "module.exports = { appState: ${{ secrets.FB_COOKIES }} };" > ./id.js
+        echo "id.js file created successfully"
+
+    - name: Create .env file
+      run: |
         echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
-    - name: Run bot with automatic restart
+        echo "Environment variables set"
+
+    - name: Run the bot
       run: |
-        while true; do
-          timeout 350m node bot.js  # 5 ঘন্টা 50 মিনিট রান করবে
-          echo "Restarting bot..."
-          sleep 10
-        done
+        echo "Starting bot..."
+        timeout 8m node bot.js || echo "Bot finished or timed out"
+      env:
+        NODE_ENV: production
