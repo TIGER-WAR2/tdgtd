@@ -1,0 +1,5 @@
+node_modules/
+id.js
+.env
+message_logs.txt
+*.log
