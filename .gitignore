@@ -1,5 +1,4 @@
 node_modules/
-id.js
 .env
-message_logs.txt
+id.js
 *.log
